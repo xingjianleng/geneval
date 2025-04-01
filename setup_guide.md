@@ -31,6 +31,12 @@ pip install --upgrade setuptools
 
 ### 4. Install mmcv dependencies
 This is the tricky part, because pre-built `mmcv` is not for H100 GPU with `sm90` CUDA computation capability. So, we need to build `mmcv` from source.
+
+Before installing `mmcv`, make sure you have installed `cuda` binaries corresponding to your `torch cuda` version. Below is an example of how you can load the correct version from SLURM package manager.
+```bash
+module load cuda/12.1.0
+``` 
+
 ```bash
 TORCH_CUDA_ARCH_LIST=9.0 pip install mmcv-full mmengine mmcv-full==1.7.2
 ```
