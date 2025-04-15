@@ -105,7 +105,7 @@ def main(opt):
     # Load model
     if opt.model == "stabilityai/stable-diffusion-xl-base-1.0":
         model = DiffusionPipeline.from_pretrained(opt.model, torch_dtype=torch.float16, use_safetensors=True, variant="fp16")
-        model.enable_xformers_memory_efficient_attention()
+        # model.enable_xformers_memory_efficient_attention()
     else:
         model = StableDiffusionPipeline.from_pretrained(opt.model, torch_dtype=torch.float16)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
