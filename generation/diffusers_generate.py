@@ -110,7 +110,7 @@ def main(opt):
         model = StableDiffusionPipeline.from_pretrained(opt.model, torch_dtype=torch.float16)
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model = model.to(device)
-    model.enable_attention_slicing()
+    # model.enable_attention_slicing()
 
     for index, metadata in enumerate(metadatas):
         seed_everything(opt.seed)
