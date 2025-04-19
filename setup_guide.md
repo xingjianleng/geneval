@@ -27,6 +27,7 @@ pip install diffusers["torch"] transformers
 pip install tomli
 pip install platformdirs
 pip install --upgrade setuptools
+pip install pandas==1.5.3
 ```
 
 ### 4. Install mmcv dependencies
