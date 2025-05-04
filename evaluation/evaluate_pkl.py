@@ -8,17 +8,18 @@ import os
 import re
 import sys
 import time
+import pickle
 
 import warnings
 warnings.filterwarnings("ignore")
 
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
 from PIL import Image, ImageOps
 import torch
 import mmdet
 from mmdet.apis import inference_detector, init_detector
+from tqdm import trange
 
 import open_clip
 from clip_benchmark.metrics import zeroshot_classification as zsc
@@ -28,8 +29,9 @@ zsc.tqdm = lambda it, *args, **kwargs: it
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--imagedir", type=str, required=True)
+    parser.add_argument("--pkl_path", type=str, required=True)
     parser.add_argument("--outfile", type=str, required=True)
+    parser.add_argument("--metadata_path", type=str, default="prompts/evaluation_metadata.jsonl")
     parser.add_argument("--model-config", type=str, default=None)
     parser.add_argument("--model-path", type=str, default="checkpoints")
     # Other arguments
@@ -221,11 +223,13 @@ def evaluate(image, objects, metadata):
     return correct, "\n".join(reason)
 
 
-def evaluate_image(filepath, metadata):
-    result = inference_detector(object_detector, filepath)
+def evaluate_image(image, metadata):
+    # RGB -> BGR
+    image_np = np.array(image)[:, :, ::-1]
+    result = inference_detector(object_detector, image_np)
     bbox = result[0] if isinstance(result, tuple) else result
     segm = result[1] if isinstance(result, tuple) and len(result) > 1 else None
-    image = ImageOps.exif_transpose(Image.open(filepath))
+    image = ImageOps.exif_transpose(image)
     detected = {}
     # Determine bounding boxes to keep
     confidence_threshold = THRESHOLD if metadata['tag'] != "counting" else COUNTING_THRESHOLD
@@ -246,7 +250,6 @@ def evaluate_image(filepath, metadata):
     # Evaluate
     is_correct, reason = evaluate(image, detected, metadata)
     return {
-        'filename': filepath,
         'tag': metadata['tag'],
         'prompt': metadata['prompt'],
         'correct': is_correct,
@@ -261,19 +264,32 @@ def evaluate_image(filepath, metadata):
 
 def main(args):
     full_results = []
-    for subfolder in tqdm(os.listdir(args.imagedir)):
-        folderpath = os.path.join(args.imagedir, subfolder)
-        if not os.path.isdir(folderpath) or not subfolder.isdigit():
-            continue
-        with open(os.path.join(folderpath, "metadata.jsonl")) as fp:
-            metadata = json.load(fp)
-        # Evaluate each image
-        for imagename in os.listdir(os.path.join(folderpath, "samples")):
-            imagepath = os.path.join(folderpath, "samples", imagename)
-            if not os.path.isfile(imagepath) or not re.match(r"\d+\.png", imagename):
-                continue
-            result = evaluate_image(imagepath, metadata)
+
+    # Load the saved generated images
+    with open(args.pkl_path, "rb") as fp:
+        gen_out = pickle.load(fp)
+
+    # Load the metadata
+    with open(args.metadata_path, "r") as fp:
+        metadatas = [json.loads(line) for line in fp if line.strip()]
+
+    # Ensure the lengths match
+    assert all([elem in gen_out for elem in ["prompts", "images"]])
+
+    # Iterate through the generated images
+    # NOTE: Sometimes 
+    for i in trange(len(metadatas)):
+        # Fetch the data
+        prompt = gen_out["prompts"][i]
+        images = gen_out["images"][i]
+        metadata = metadatas[i]
+
+        # Make sure metadata matches
+        assert metadata["prompt"] == prompt
+        for image in images:
+            result = evaluate_image(image, metadata)
             full_results.append(result)
+
     # Save results
     if os.path.dirname(args.outfile):
         os.makedirs(os.path.dirname(args.outfile), exist_ok=True)

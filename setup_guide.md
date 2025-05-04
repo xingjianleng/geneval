@@ -39,7 +39,7 @@ module load cuda/12.1.0
 ``` 
 
 ```bash
-TORCH_CUDA_ARCH_LIST=9.0 pip install mmcv-full mmengine mmcv-full==1.7.2
+TORCH_CUDA_ARCH_LIST=9.0 pip install mmengine mmcv-full==1.7.2
 ```
 
 ### 5. Install mmdetection dependencies
