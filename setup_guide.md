@@ -18,16 +18,18 @@ mkdir -p "<OBJECT_DETECTOR_FOLDER>/"
 
 ### 3. Install basic dependencies
 ```bash
-pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.1.2 torchvision==0.16.2
 pip install open-clip-torch==2.26.1
-pip install clip-benchmark
-pip install einops
-python -m pip install lightning
-pip install diffusers["torch"] transformers
-pip install tomli
-pip install platformdirs
-pip install --upgrade setuptools
+pip install clip-benchmark==1.6.1
+pip install einops==0.8.1
+pip install lightning==2.3.3
+pip install diffusers["torch"]==0.32.2
+pip install transformers==4.46.3
+pip install tomli==2.2.1
+pip install platformdirs==4.3.6
+pip install --upgrade setuptools==75.3.2
 pip install pandas==1.5.3
+pip install h5py==3.11.0
 ```
 
 ### 4. Install mmcv dependencies
@@ -41,6 +43,8 @@ module load cuda/12.1.0
 ```bash
 TORCH_CUDA_ARCH_LIST=9.0 pip install mmengine mmcv-full==1.7.2
 ```
+
+**P.S.** If you are using GPUs older than H100, simply remove the `TORCH_CUDA_ARCH_LIST=9.0` environment variable.
 
 ### 5. Install mmdetection dependencies
 ```bash
