@@ -41,7 +41,7 @@ module load cuda/12.1.0
 ``` 
 
 ```bash
-TORCH_CUDA_ARCH_LIST=9.0 pip install mmengine mmcv-full==1.7.2
+TORCH_CUDA_ARCH_LIST=9.0 MMCV_CUDA_ARGS="-arch=sm_90" pip install -v mmengine mmcv-full==1.7.2
 ```
 
 **P.S.** If you are using GPUs older than H100, simply remove the `TORCH_CUDA_ARCH_LIST=9.0` environment variable.
